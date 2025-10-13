@@ -1,0 +1,200 @@
+# Anomaly Detection in Crowd Behavior - Project Report
+
+## Project Overview
+
+This is an **Anomaly Detection System for Crowd Behavior Analysis** using computer vision and machine learning techniques. The system is designed to detect abnormal behaviors in crowd scenarios using the UCSD Pedestrian Dataset.
+
+## Main Purpose
+
+The system analyzes video sequences to identify unusual patterns in crowd movements, such as:
+- Vehicles in pedestrian zones
+- People moving in unusual directions
+- Running or erratic movements
+- Objects moving against the normal flow
+
+## Project Structure
+
+### Core Files
+
+1. **test_script.py** - Main testing and evaluation script
+ - Loads pre-trained features and trains a classifier
+ - Processes test videos frame by frame
+ - Detects anomalies using optical flow and background subtraction
+ - Evaluates performance with metrics (Precision, Recall, F1-score, EER)
+
+2. **UCSDped1.py** - Dataset configuration
+ - Contains ground truth annotations for UCSD Pedestrian Dataset 1
+ - Maps video indices to frames with known anomalies
+
+3. **model.py** - Machine learning model utilities
+ - Feature extraction from optical flow
+ - Anomaly detector class with support for Decision Trees and KNN
+ - Model training and prediction functions
+
+4. **utils.py** - General utility functions
+ - Image loading and saving
+ - Metric calculations (precision, recall, F1)
+ - Frame preprocessing and normalization
+ - Optical flow visualization
+
+5. **optical_flow.py** - Optical flow analysis
+ - Dense optical flow computation using Farneback method
+ - Magnitude and angle calculation
+ - Direction discretization into bins
+ - Flow visualization and vector drawing
+
+### YOLOv5 Integration Files
+
+6. **train.py** - YOLOv5 training script
+ - Trains object detection models
+ - Can be used for detecting people/objects in crowds
+
+7. **detect.py** - YOLOv5 inference script
+ - Runs object detection on images/videos
+ - Identifies and localizes objects in scenes
+
+8. **test.py** - YOLOv5 testing/validation script
+ - Evaluates model accuracy
+ - Calculates mAP and other metrics
+
+9. **export.py** - Model export utility
+ - Exports models to different formats (ONNX, TorchScript, CoreML)
+
+10. **helpers.py** - Helper functions for model loading
+ - YOLOv5 model wrapper class
+ - Simplified inference interface
+
+## How It Works
+
+### Anomaly Detection Pipeline
+
+1. **Preprocessing**
+ - Reads video frames from directories (TIFF format)
+ - Converts to grayscale for processing
+ - Applies background subtraction (MOG method)
+
+2. **Feature Extraction**
+ - Computes optical flow between consecutive frames
+ - Extracts direction bins (8 directions + no motion)
+ - Calculates flow magnitude
+ - Counts foreground pixels in each region
+ - Divides frame into grid regions (10x10 pixels by default)
+
+3. **Classification**
+ - Uses pre-trained Decision Tree classifier (max_depth=5)
+ - Predicts if each region contains anomalous behavior
+ - Features: [9 direction bins + foreground count + magnitude + spatial info]
+
+4. **Detection & Visualization**
+ - Draws bounding boxes around anomalous regions (yellow rectangles)
+ - Saves annotated frames to output folders
+ - Tracks frame-level anomaly detections
+
+5. **Evaluation**
+ - Compares detections against ground truth
+ - Calculates frame-level metrics (Precision, Recall, F1)
+ - Calculates pixel-level metrics
+ - Computes Equal Error Rate (EER) using ROC curve
+
+## Key Technologies
+
+- **Computer Vision**: OpenCV for image processing and optical flow
+- **Machine Learning**: scikit-learn for classification (Decision Trees, KNN)
+- **Deep Learning**: YOLOv5 for object detection (optional component)
+- **Metrics**: ROC curves, EER, Precision, Recall, F1-score
+
+## Dataset
+
+The system is designed for the **UCSD Pedestrian Anomaly Detection Dataset**:
+- Videos of pedestrian walkways
+- Normal behavior: people walking
+- Anomalies: bicycles, skateboards, vehicles, unusual movements
+- Ground truth annotations for 36 test videos
+
+## Usage
+
+### For Anomaly Detection Testing:
+
+```bash
+python test_script.py
+```
+
+This will:
+- Load pre-trained features from `features/` directory
+- Train a classifier on the training data
+- Process all test videos in the UCSD dataset
+- Output detection results to `output_folders/`
+- Print evaluation metrics
+
+### For YOLOv5 Object Detection:
+
+```bash
+# Train a model
+python train.py --data dataset.yaml --weights yolov5s.pt --img 640
+
+# Detect objects in images/videos
+python detect.py --source path/to/images --weights yolov5s.pt
+
+# Test model accuracy
+python test.py --data dataset.yaml --weights yolov5s.pt
+```
+
+## Output Metrics
+
+### Frame-Level Metrics:
+- **Precision**: Accuracy of detected anomalies
+- **Recall**: Coverage of actual anomalies
+- **F1 Score**: Harmonic mean of precision and recall
+
+### Pixel-Level Metrics:
+- **True Positives**: Correctly identified anomalous pixels
+- **False Positives**: Normal pixels incorrectly marked as anomalous
+- **False Negatives**: Anomalous pixels missed
+- **EER (Equal Error Rate)**: Point where false positive rate equals false negative rate
+- **RD (Recognition Distance)**: 1 - EER
+
+### Processing Speed:
+- Reports frames per second (FPS) for each video
+
+## Configuration
+
+Key parameters in `test_script.py`:
+- `n = 10`: Region size (10x10 pixels)
+- `detect_interval = 5`: Process every 5th frame
+- `mag_threshold = 1e-3`: Minimum optical flow magnitude
+- `max_depth = 5`: Decision tree maximum depth
+
+## Requirements
+
+```
+opencv-python
+numpy
+scikit-learn
+scipy
+torch (for YOLOv5)
+```
+
+## Project Status
+
+**Completed Components:**
+- UCSDped1 dataset configuration
+- Feature extraction and optical flow analysis
+- Model utilities and training pipeline
+- Utility functions for image processing
+- Anomaly detection testing script
+- YOLOv5 integration for object detection
+
+## Future Enhancements
+
+- Real-time video stream processing
+- Deep learning-based anomaly detection
+- Multi-dataset support (UCSD Ped2, Avenue, etc.)
+- GUI for visualization and analysis
+- Improved temporal modeling with LSTM/GRU networks
+
+---
+
+**Project Type**: Computer Vision + Machine Learning 
+**Domain**: Video Surveillance & Crowd Analysis 
+**Technique**: Optical Flow + Background Subtraction + Supervised Learning 
+**Dataset**: UCSD Pedestrian Anomaly Detection Dataset
